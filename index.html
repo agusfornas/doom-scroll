@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Doom Scroll</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --bg: #080808; --bg2: #0f0f0f; --bg3: #141414; --red: #ff2020; --orange: #ff9900; --white: #f5f5f5; --gray: #666; --light-gray: #999; --card-border: rgba(255,32,32,0.15); }
+  body { background: var(--bg); color: var(--white); font-family: 'Inter', sans-serif; min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+
+  /* Header */
+  .site-header { background: var(--bg); border-bottom: 3px solid var(--red); padding: 1.5rem; text-align: center; position: relative; overflow: hidden; }
+  .site-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(255,32,32,0.08) 0%, transparent 70%); pointer-events: none; }
+  .warning-bar { background: var(--red); color: var(--bg); font-family: 'Space Mono', monospace; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; padding: 0.35rem 0; margin-bottom: 1rem; }
+  .site-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 10vw, 7rem); line-height: 0.9; letter-spacing: 0.03em; color: var(--white); }
+  .site-title .doom { color: var(--red); }
+  .site-sub { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--gray); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.6rem; }
+  .site-date { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--orange); margin-top: 0.3rem; }
+
+  /* Container */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* Feed */
+  .feed { padding: 2rem 0; }
+  .feed-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--red); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.8rem; }
+  .feed-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,32,32,0.2); }
+
+  .doom-card { background: var(--bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--red); margin-bottom: 1.2rem; padding: 0; overflow: hidden; transition: border-color 0.2s; }
+  .doom-card:hover { border-left-color: var(--orange); border-color: rgba(255,153,0,0.25); }
+  .doom-card-inner { padding: 1.8rem; }
+  .doom-card-img { width: 100%; height: 200px; object-fit: cover; display: block; filter: grayscale(30%) contrast(1.1) brightness(0.85); }
+  .doom-number { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--red); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+  .doom-number::before { content: '●'; animation: blink 1.2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .doom-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1.05; letter-spacing: 0.02em; margin-bottom: 0.8rem; color: var(--white); }
+  .doom-title .accent { color: var(--red); }
+  .doom-excerpt { font-size: 0.92rem; line-height: 1.7; color: var(--light-gray); margin-bottom: 1.3rem; }
+  .doom-meta { display: flex; justify-content: space-between; align-items: center; }
+  .doom-date { font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--gray); }
+  .doom-btn { background: var(--red); color: var(--bg); font-family: 'Space Mono', monospace; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer; border: none; transition: background 0.2s; }
+  .doom-btn:hover { background: var(--orange); }
+  .doom-btn-alt { background: transparent; color: var(--orange); border: 1px solid var(--orange); font-family: 'Space Mono', monospace; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s; }
+  .doom-btn-alt:hover { background: var(--orange); color: var(--bg); }
+
+  /* Footer */
+  footer { background: var(--bg2); border-top: 2px solid rgba(255,32,32,0.2); padding: 2rem 1.5rem; text-align: center; margin-top: 1rem; }
+  footer .f-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--red); margin-bottom: 0.4rem; }
+  footer p { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--gray); line-height: 1.8; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; overflow-y: auto; padding: 2rem 1rem; }
+  .modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+  .modal-box { background: var(--bg2); border: 1px solid var(--card-border); border-top: 3px solid var(--red); max-width: 700px; width: 100%; position: relative; margin: auto; overflow: hidden; }
+  .modal-img { width: 100%; height: 220px; object-fit: cover; filter: grayscale(20%) contrast(1.1) brightness(0.8); }
+  .modal-content { padding: 2rem; }
+  .modal-close { position: absolute; top: 0.8rem; right: 1rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--red); cursor: pointer; background: none; border: none; letter-spacing: 0.1em; }
+  .modal-number { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--red); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.5rem, 4vw, 2.4rem); line-height: 1.05; margin-bottom: 0.6rem; }
+  .modal-title .accent { color: var(--red); }
+  .modal-sub { font-size: 0.92rem; line-height: 1.65; color: var(--light-gray); margin-bottom: 1.2rem; font-style: italic; }
+  .modal-date { font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--gray); margin-bottom: 1.5rem; padding-bottom: 1.2rem; border-bottom: 1px solid rgba(255,32,32,0.15); }
+  .modal-body p { font-size: 0.93rem; line-height: 1.8; color: #b8b8b8; margin-bottom: 1rem; }
+  .modal-body p strong { color: var(--orange); }
+
+  @media (max-width: 600px) {
+    .modal-content { padding: 1.2rem; }
+    .doom-card-inner { padding: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="warning-bar">⚠ CONTENT WARNING: REAL NEWS. ACTUAL DOOM. NO COPING MECHANISM INCLUDED. ⚠</div>
+  <h1 class="site-title"><span class="doom">DOOM</span> SCROLL</h1>
+  <p class="site-sub">we're all doomed but at least it's interesting</p>
+  <p class="site-date">Tuesday, April 21, 2026 // 5 fresh disasters for your consumption</p>
+</header>
+
+<main>
+<div class="container">
+<div class="feed">
+  <div class="feed-label">today's catastrophes</div>
+
+  <!-- Card 1 -->
+  <div class="doom-card">
+    <img class="doom-card-img" src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=900&q=80" alt="Code">
+    <div class="doom-card-inner">
+      <div class="doom-number">doom dispatch #01 // venture capital</div>
+      <h2 class="doom-title">A CODE EDITOR IS NOW WORTH <span class="accent">$50 BILLION</span>. YOUR CS DEGREE WAS NOT SUPPOSED TO END LIKE THIS.</h2>
+      <p class="doom-excerpt">Cursor, the AI coding tool that writes your code while you pretend to understand what it's doing, is raising $2 billion at a $50B+ valuation. For context: it grew from $0 to $2B in annual revenue in 3 years. Your entire career might be one fundraising round away from obsolescence.</p>
+      <div class="doom-meta">
+        <span class="doom-date">Apr 21, 2026</span>
+        <button class="doom-btn" onclick="openModal('modal-cursor')">READ FULL DOOM</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="doom-card">
+    <img class="doom-card-img" src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=900&q=80" alt="AI">
+    <div class="doom-card-inner">
+      <div class="doom-number">doom dispatch #02 // big tech</div>
+      <h2 class="doom-title">META ABANDONED OPEN SOURCE AI AND <span class="accent">NOBODY IS SURPRISED</span>. MUSE SPARK IS HERE TO SERVE ADS INSIDE YOUR THOUGHTS.</h2>
+      <p class="doom-excerpt">Meta's Muse Spark is a multimodal reasoning AI that will live inside WhatsApp, Instagram, and every other app you use to avoid your feelings. It's closed, proprietary, and powered by a $14 billion hire. The era of Meta giving away AI models ended the moment they figured out how to monetize them.</p>
+      <div class="doom-meta">
+        <span class="doom-date">Apr 8, 2026</span>
+        <button class="doom-btn" onclick="openModal('modal-meta')">READ FULL DOOM</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="doom-card">
+    <img class="doom-card-img" src="https://images.unsplash.com/photo-1620825937374-87fc7d6bddc2?w=900&q=80" alt="Chip">
+    <div class="doom-card-inner">
+      <div class="doom-number">doom dispatch #03 // geopolitics</div>
+      <h2 class="doom-title">DEEPSEEK V4 HAS <span class="accent">ONE TRILLION PARAMETERS</span>, RUNS ON CHINESE CHIPS, AND IS FREE. THE SANCTIONS DIDN'T WORK.</h2>
+      <p class="doom-excerpt">The US spent years trying to stop China from building frontier AI by blocking chip exports. DeepSeek V4 — 1T parameters, open weights, Apache 2.0, Huawei hardware — is their response. Plot twist: algorithmic efficiency beats hardware sanctions. The geopolitical strategy has entered its "oh no" phase.</p>
+      <div class="doom-meta">
+        <span class="doom-date">Apr 21, 2026</span>
+        <button class="doom-btn" onclick="openModal('modal-deepseek')">READ FULL DOOM</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 4 -->
+  <div class="doom-card">
+    <img class="doom-card-img" src="https://images.unsplash.com/photo-1579389083078-4e7018379f7e?w=900&q=80" alt="Ads">
+    <div class="doom-card-inner">
+      <div class="doom-number">doom dispatch #04 // ads are everywhere</div>
+      <h2 class="doom-title">OPENAI WANTS <span class="accent">$100 BILLION</span> IN AD REVENUE BY 2030. YES THE AI THAT GIVES YOU ADVICE WILL SOON BE PAID TO GIVE YOU SPECIFIC ADVICE.</h2>
+      <p class="doom-excerpt">ChatGPT is going full ad-supported. $2.5B in 2026, $100B by 2030. The AI that you ask for unbiased recommendations will be incentivized to recommend whatever paid more that month. This is either fine and normal or the most insidious form of subliminal advertising ever devised. Probably both.</p>
+      <div class="doom-meta">
+        <span class="doom-date">Apr 21, 2026</span>
+        <button class="doom-btn-alt" onclick="openModal('modal-openai')">READ FULL DOOM</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 5 -->
+  <div class="doom-card">
+    <img class="doom-card-img" src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=900&q=80" alt="Finance">
+    <div class="doom-card-inner">
+      <div class="doom-number">doom dispatch #05 // class warfare, data edition</div>
+      <h2 class="doom-title"><span class="accent">$300 BILLION</span> INVESTED IN Q1 2026. 20% OF COMPANIES GET 75% OF THE GAINS. THE MATH IS NOT MATHING FOR MOST OF US.</h2>
+      <p class="doom-excerpt">Record venture funding quarter. Sounds great. The fine print: PwC says the top 20% of companies are capturing 75% of AI's economic gains. The rest are competing for the scraps. The AI revolution is happening. It's just unevenly distributed. Which, historically, is how every revolution goes before it eats the people who funded it.</p>
+      <div class="doom-meta">
+        <span class="doom-date">Apr 21, 2026</span>
+        <button class="doom-btn-alt" onclick="openModal('modal-vc')">READ FULL DOOM</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</main>
+
+<footer>
+  <p class="f-title">THE DOOM SCROLL</p>
+  <p>Real tech news. Existential implications. No coping mechanism.<br>Published every weekday. We can't be stopped. © 2026 The Doom Scroll.<br>"we're all doomed but at least it's interesting"</p>
+</footer>
+
+<!-- Modals -->
+<div id="modal-cursor" class="modal-overlay" onclick="closeOnOverlay(event,this)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-cursor')">[CLOSE]</button>
+    <img class="modal-img" src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=900&q=80" alt="Code">
+    <div class="modal-content">
+      <div class="modal-number">doom dispatch #01 // venture capital // Apr 21, 2026</div>
+      <h2 class="modal-title">A CODE EDITOR IS NOW WORTH <span class="accent">$50 BILLION</span>. YOUR CS DEGREE WAS NOT SUPPOSED TO END LIKE THIS.</h2>
+      <p class="modal-sub">Cursor is raising $2B at a $50B+ valuation. It makes AI-assisted coding so good that coders are paying for the tool that's slowly replacing them. We are living in a simulation and the simulation is a pitch deck.</p>
+      <p class="modal-date">April 21, 2026 // estimated doom absorption time: 4 minutes</p>
+      <div class="modal-body">
+        <p>Let's start with the numbers because they're unhinged. Cursor — the AI coding tool made by Anysphere — went from $0 to $2 billion in annual recurring revenue in under three years. <strong>Three years.</strong> For context: your favorite startup that raised $50M in 2022 and "pivoted to AI" in 2023 has not done that. Cursor did it by making AI-assisted coding so seamlessly good that developers genuinely cannot go back to doing it manually. Which is either the best product success story of this generation or the opening chapter of the automation arc nobody wanted to live through.</p>
+        <p>The round is being led by Thrive Capital and Andreessen Horowitz, with Nvidia joining as a strategic investor. The Nvidia part is the most honest part of the whole deal: Nvidia isn't investing in software because they like the team's vibe. They're investing because every line of code Cursor generates on behalf of a lazy developer is GPU compute. The more powerful the AI coding assistant, the more chips it needs. Nvidia funding Cursor is a farmer funding their own irrigation system. <strong>It's not charity, it's infrastructure.</strong></p>
+        <p>Here's the doom: 70% of Fortune 1,000 companies are already using Cursor. The AI coding market hit $12.8 billion in revenue in 2026. The implicit logic of a $50B valuation for a coding tool is that software development — as humans have practiced it for 60 years — is in a multi-decade transition toward AI-primary, human-supervised code generation. Maybe that's fine and developers evolve into AI orchestrators. Maybe it's not fine and the job market for junior developers collapses in slow motion. The market is pricing in the former. Gen Z CS graduates are praying for the former. History suggests we should at least consider the latter.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-meta" class="modal-overlay" onclick="closeOnOverlay(event,this)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-meta')">[CLOSE]</button>
+    <img class="modal-img" src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=900&q=80" alt="AI">
+    <div class="modal-content">
+      <div class="modal-number">doom dispatch #02 // big tech // Apr 8, 2026</div>
+      <h2 class="modal-title">META ABANDONED OPEN SOURCE AI AND <span class="accent">NOBODY IS SURPRISED</span>. MUSE SPARK IS HERE TO SERVE ADS INSIDE YOUR THOUGHTS.</h2>
+      <p class="modal-sub">Meta's Muse Spark: closed, proprietary, and coming to an Instagram DM near you. The open source era lasted exactly as long as it was strategically useful.</p>
+      <p class="modal-date">April 8, 2026 // estimated doom absorption time: 4 minutes</p>
+      <div class="modal-body">
+        <p>Remember when Meta released LLaMA and everyone was like "wow, Meta believes in open AI!" and then Meta released LLaMA 2 and LLaMA 3 and the whole tech Twitter went "Meta is the good guy actually"? That era ended April 8, 2026 when Meta Superintelligence Labs — the unit that cost $14 billion to assemble when they hired Alexandr Wang — launched Muse Spark, their first fully proprietary, closed-weight, you-cannot-have-the-weights AI model. <strong>The open source rebrand lasted exactly as long as it needed to.</strong></p>
+        <p>Muse Spark is technically impressive. Natively multimodal (text, voice, images). Three operating modes including a "Contemplating" mode that deploys a squad of AI agents to reason in parallel on hard problems. Performance that Meta claims competes with Gemini Deep Think and GPT Pro. It'll roll out to WhatsApp, Instagram, Facebook, and Messenger — meaning it will reach 3 billion people. <strong>Three billion people</strong> getting their questions answered by a model that Meta controls, owns, and will monetize.</p>
+        <p>This is where the doom lives. Meta's business model is advertising. Their ability to target advertising depends on understanding what you want, when you want it, and how uncertain you are about your choices. A frontier AI model embedded in every Meta surface and used daily by billions of people generates exactly the kind of deep behavioral signal that advertising systems dream about. Muse Spark isn't a product pivot. It's an advertising infrastructure project disguised as a chatbot. And it's very good. Which makes it very concerning. Which means you'll use it anyway. This is fine.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-deepseek" class="modal-overlay" onclick="closeOnOverlay(event,this)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-deepseek')">[CLOSE]</button>
+    <img class="modal-img" src="https://images.unsplash.com/photo-1620825937374-87fc7d6bddc2?w=900&q=80" alt="Chip">
+    <div class="modal-content">
+      <div class="modal-number">doom dispatch #03 // geopolitics // Apr 21, 2026</div>
+      <h2 class="modal-title">DEEPSEEK V4 HAS <span class="accent">ONE TRILLION PARAMETERS</span>, RUNS ON CHINESE CHIPS, AND IS FREE. THE SANCTIONS DIDN'T WORK.</h2>
+      <p class="modal-sub">The geopolitical strategy for containing Chinese AI was "block the chips." DeepSeek's response was "okay we'll build better chips and smarter algorithms." Plot twist incoming.</p>
+      <p class="modal-date">April 21, 2026 // estimated doom absorption time: 4 minutes</p>
+      <div class="modal-body">
+        <p>The United States export control strategy for AI contained a key assumption: if China can't buy Nvidia H100s, they can't build frontier AI. This was a reasonable assumption in 2022. In 2026 it looks increasingly like the kind of assumption that sounds smart in a conference room and gets demolished by reality. DeepSeek V4 is expected to drop before the end of April with one trillion parameters in a Mixture-of-Experts architecture, running entirely on Huawei Ascend 910C chips — China's domestically produced alternative to Nvidia GPUs. Apache 2.0 license. One-million-token context window. Native multimodal. <strong>And it's free.</strong></p>
+        <p>The benchmark numbers are the kind that make Nvidia's partners in the US nervous: 81% on SWE-bench (autonomous software engineering), inference at $0.30 per million tokens — that's ten times cheaper than comparable Western frontier models. The previous DeepSeek model cost an estimated $5.2 million to train, at a time when OpenAI was reportedly spending $500M+ on comparable runs. <strong>The efficiency gap is not a talent gap. It's a motivation gap.</strong> When you can't buy the best hardware, you optimize the hell out of what you have.</p>
+        <p>Here's the full doom picture: a freely available, Apache-licensed, one-trillion-parameter multimodal AI model, competitive with Western frontier models, running on Chinese hardware, available to any government, research institution, or developer in the world. That's what late April 2026 looks like. The policy people are going to write very concerned reports. The open source community is going to celebrate. The VCs who funded AI startups that are now competing with free are going to have very quiet portfolio reviews. Everyone else is going to just use it. This is the world now. This is fine.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-openai" class="modal-overlay" onclick="closeOnOverlay(event,this)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-openai')">[CLOSE]</button>
+    <img class="modal-img" src="https://images.unsplash.com/photo-1579389083078-4e7018379f7e?w=900&q=80" alt="Ads">
+    <div class="modal-content">
+      <div class="modal-number">doom dispatch #04 // ads are everywhere // Apr 21, 2026</div>
+      <h2 class="modal-title">OPENAI WANTS <span class="accent">$100 BILLION</span> IN AD REVENUE BY 2030. YES THE AI THAT GIVES YOU ADVICE WILL SOON BE PAID TO GIVE YOU SPECIFIC ADVICE.</h2>
+      <p class="modal-sub">ChatGPT is becoming ad-supported. The AI that replaced Google is becoming Google. The circle of life is a sponsored post.</p>
+      <p class="modal-date">April 21, 2026 // estimated doom absorption time: 4 minutes</p>
+      <div class="modal-body">
+        <p>OpenAI is projecting $2.5 billion in advertising revenue for 2026 and wants to reach $100 billion annually by 2030. To put the $100B figure in context: YouTube made $36 billion in 2024. OpenAI wants to nearly triple that in six years with a product that didn't exist five years ago. The pitch to advertisers is compelling and terrifying in equal measure: ChatGPT doesn't just know what you searched for, it knows what you're confused about, what you're trying to decide, how uncertain you are, and what language resonates with you personally. <strong>That's not a search engine. That's a confession booth with a billboard.</strong></p>
+        <p>The mechanism is what should concern everyone who uses AI to make decisions. Traditional search advertising was blunt: pay to appear when someone searches "best CRM." AI advertising could be far more subtle: a model that, when asked about CRMs, naturally elaborates more on the features of paying sponsors, uses more confident language about their offerings, or subtly frames the recommendation in ways that favor particular outcomes without generating an explicit "Sponsored" disclosure. Not lying. Just... leaning. <strong>The difference between a biased recommendation and an honest one is invisible when it comes from an AI you trust.</strong></p>
+        <p>The broader doom is structural. We replaced SEO-gamed search results (websites paying Google to rank higher) with AI-gamed answers (companies paying OpenAI to be recommended more warmly). We haven't escaped the problem of commercial interests distorting information flow — we've just made it harder to see. The publishers who lost traffic to AI summaries are now watching the AI summaries themselves become monetized surfaces. The open web is having a very bad few years. And we're all merrily asking ChatGPT for advice on everything from career decisions to what medication to ask our doctors about. This is completely fine and normal. We're in great hands. Sponsored hands, but great ones.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-vc" class="modal-overlay" onclick="closeOnOverlay(event,this)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-vc')">[CLOSE]</button>
+    <img class="modal-img" src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=900&q=80" alt="Finance">
+    <div class="modal-content">
+      <div class="modal-number">doom dispatch #05 // class warfare, data edition // Apr 21, 2026</div>
+      <h2 class="modal-title"><span class="accent">$300 BILLION</span> INVESTED IN Q1 2026. 20% OF COMPANIES GET 75% OF THE GAINS. THE MATH IS NOT MATHING FOR MOST OF US.</h2>
+      <p class="modal-sub">Record venture funding quarter. PwC data. The AI revolution is real. It's just mostly happening for someone else.</p>
+      <p class="modal-date">April 21, 2026 // estimated doom absorption time: 4 minutes</p>
+      <div class="modal-body">
+        <p>The headline is great: Q1 2026 was the biggest venture capital quarter in recorded history at $300 billion deployed globally, according to Crunchbase. More than double Q1 2024. AI is eating the world, money is flowing, vibe is immaculate. Now the PwC footnote, which is considerably less great: <strong>75% of AI's economic gains are being captured by 20% of companies.</strong> The other 80% of companies are collectively fighting over the remaining 25%. This is called "the AI economy" but it's also called "what happened with the internet economy" and "what happened with the industrial economy" and frankly "what happens with every economy."</p>
+        <p>The companies in the top 20% share a suspiciously consistent profile: they have proprietary data that others don't, they had distribution before AI became necessary, they can afford frontier model access, and they're growing rather than optimizing. The bottom 80% includes a lot of startups that did the reasonable thing — put "AI-powered" in their pitch deck, integrated an API, got some early traction — and are now discovering that "AI wrapper" is not a moat. <strong>A thin layer of GPT over a so-so product is not a business. It's a demo that raised too much money.</strong></p>
+        <p>The generation-specific doom: the $300B figure is real, but the distribution is profoundly not vibe-coded. The AI revolution is producing extraordinary wealth for a very small number of people and companies, while the broader workforce navigating AI-disrupted industries has not received a proportional share of those gains. This is not new — it's capitalism — but the velocity is new. The AI boom is concentrating economic power faster than previous technology cycles. The good news: history suggests this eventually broadens. The bad news: "eventually" in historical technology cycles is measured in decades. <strong>We are not in the "eventually" part yet. We are in the "this is mostly someone else's revolution" part.</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+  function closeOnOverlay(e,el) { if(e.target===el){ el.classList.remove('open'); document.body.style.overflow=''; } }
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.querySelectorAll('.modal-overlay.open').forEach(m=>{ m.classList.remove('open'); document.body.style.overflow=''; }); } });
+</script>
+</body>
+</html>
