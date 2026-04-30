@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Doom Scroll — We're All Cooked</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #080808; color: #e0e0e0; font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.65; }
+  a { color: inherit; text-decoration: none; }
+
+  /* SCANLINE EFFECT */
+  body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,32,32,0.015) 2px,rgba(255,32,32,0.015) 4px); pointer-events:none; z-index:9999; }
+
+  /* HEADER */
+  .header { text-align: center; padding: 36px 20px 24px; border-bottom: 3px solid #ff2020; position: relative; overflow: hidden; }
+  .header::before { content: 'DOOM SCROLL'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-15deg); font-family: 'Bebas Neue', sans-serif; font-size: 200px; color: rgba(255,32,32,0.04); white-space: nowrap; pointer-events: none; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px, 8vw, 80px); letter-spacing: 4px; color: #ff2020; text-shadow: 0 0 20px rgba(255,32,32,0.5); }
+  .logo-sub { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #ff9900; letter-spacing: 0.25em; text-transform: uppercase; margin-top: 4px; }
+  .date-doom { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #555; margin-top: 10px; }
+
+  /* WARNING BANNER */
+  .warning-banner { background: #ff2020; color: #000; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-align: center; padding: 7px 20px; text-transform: uppercase; }
+  .warning-banner span { animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+  /* CONTAINER */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+
+  /* DOOM CARDS */
+  .doom-feed { padding: 36px 0; }
+  .doom-card { background: #0f0f0f; border: 1px solid #1a1a1a; border-left: 4px solid #ff2020; margin-bottom: 28px; padding: 28px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+  .doom-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, #ff2020, #ff9900, transparent); }
+  .doom-card:hover { border-left-color: #ff9900; background: #111; transform: translateX(2px); }
+  .doom-card:hover::before { background: linear-gradient(90deg, #ff9900, #ff2020, transparent); }
+  .doom-card.featured { border-left-color: #ff9900; background: #0d0d0d; }
+  .doom-card.featured::after { content: '🔥 LEAD DOOM'; position: absolute; top: 12px; right: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #ff9900; letter-spacing: 0.1em; }
+  
+  .card-inner { display: grid; grid-template-columns: 1fr 300px; gap: 28px; align-items: start; }
+  .card-inner.no-img { grid-template-columns: 1fr; }
+  .doom-number { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: #ff2020; opacity: 0.3; line-height: 1; margin-bottom: -8px; }
+  .doom-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #ff9900; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; }
+  .doom-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(22px, 3.5vw, 34px); letter-spacing: 1px; color: #fff; line-height: 1.1; margin-bottom: 12px; }
+  .doom-sub { font-size: 14px; color: #888; font-style: italic; margin-bottom: 14px; line-height: 1.5; }
+  .doom-excerpt { font-size: 14px; color: #bbb; line-height: 1.7; }
+  .doom-btn { display: inline-block; margin-top: 18px; background: #ff2020; color: #000; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; padding: 9px 20px; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+  .doom-btn:hover { background: #ff9900; }
+  .doom-img { width: 100%; height: 220px; object-fit: cover; filter: grayscale(30%) contrast(1.1); border: 1px solid #1a1a1a; }
+
+  /* FOOTER */
+  footer { border-top: 3px solid #ff2020; padding: 28px 20px; text-align: center; margin-top: 20px; }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: #ff2020; margin-bottom: 8px; }
+  footer p { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #444; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 1000; overflow-y: auto; padding: 40px 20px; }
+  .modal-overlay.active { display: block; }
+  .modal { background: #0f0f0f; border: 1px solid #1a1a1a; border-top: 3px solid #ff2020; max-width: 700px; margin: 0 auto; padding: 40px 40px; position: relative; }
+  .modal-close { position: absolute; top: 14px; right: 18px; font-size: 22px; cursor: pointer; color: #444; font-family: 'IBM Plex Mono', monospace; }
+  .modal-close:hover { color: #ff2020; }
+  .modal-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #ff9900; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; }
+  .modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(24px, 4vw, 38px); letter-spacing: 1px; color: #fff; line-height: 1.1; margin-bottom: 10px; }
+  .modal .msub { font-size: 14px; color: #666; font-style: italic; margin-bottom: 18px; }
+  .modal-meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #333; border-bottom: 1px solid #1a1a1a; padding-bottom: 12px; margin-bottom: 20px; }
+  .modal img { width: 100%; height: 220px; object-fit: cover; margin-bottom: 20px; filter: grayscale(20%) contrast(1.1); }
+  .modal p { font-size: 15px; color: #aaa; line-height: 1.8; margin-bottom: 16px; }
+  .modal p strong { color: #ff9900; }
+
+  @media (max-width: 640px) {
+    .card-inner { grid-template-columns: 1fr; }
+    .doom-img { height: 180px; }
+    .modal { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="warning-banner"><span>⚠</span> REALITY CHECK IN PROGRESS — RESULTS NOT GREAT — APRIL 30, 2026 <span>⚠</span></div>
+
+<header class="header">
+  <div class="logo">THE DOOM SCROLL</div>
+  <div class="logo-sub">Tech News For People Who've Already Accepted the Timeline</div>
+  <div class="date-doom">Thursday, April 30, 2026 · Everything is fine (it's not)</div>
+</header>
+
+<section class="doom-feed">
+  <div class="container">
+
+    <!-- CARD 1: GPT-5.5 -->
+    <div class="doom-card featured" onclick="openModal('d1')">
+      <div class="doom-number">01</div>
+      <div class="card-inner">
+        <div>
+          <div class="doom-tag">🤖 AI Singularity Adjacent</div>
+          <div class="doom-title">OpenAI's New Model Wants To Be Your Entire Computer Now</div>
+          <div class="doom-sub">GPT-5.5 isn't a chatbot anymore. It's an operating system. For your brain. That costs $30 per million tokens.</div>
+          <div class="doom-excerpt">OpenAI dropped GPT-5.5 last week and honestly the vibe has shifted. They're not even pretending it's just a chatbot anymore. The internal codename was "Spud." The external pitch is "the first step toward a unified AI super app." Which means one interface that does everything you used to pay 17 different SaaS companies to do. Text, images, audio, video, code, spreadsheets, browser navigation—one thing, all at once.</div>
+          <button class="doom-btn" onclick="openModal('d1')">Read Full Doom →</button>
+        </div>
+        <img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&q=80" alt="AI doom" class="doom-img">
+      </div>
+    </div>
+
+    <!-- CARD 2: Cursor -->
+    <div class="doom-card" onclick="openModal('d2')">
+      <div class="doom-number">02</div>
+      <div class="card-inner">
+        <div>
+          <div class="doom-tag">💸 VC Fantasy Land</div>
+          <div class="doom-title">A Code Editor Is Worth $50 Billion And SpaceX Wants To Buy It For $60 Billion. Sure.</div>
+          <div class="doom-sub">Cursor hit $2B ARR. In three years. SpaceX has a $60B acquisition option. We're living in a simulation and the simulation has a very aggressive valuation multiple.</div>
+          <div class="doom-excerpt">Okay so Cursor—the AI code editor from Anysphere—is raising $2 billion at a $50 billion valuation. Thrive and a16z are leading. Nvidia is in. They went from $1B to $2B ARR in literally 90 days. That's not a hockey stick. That's a rocket, except the rocket is owned by SpaceX who apparently has a contractual option to buy Cursor for $60 billion later this year.</div>
+          <button class="doom-btn" onclick="openModal('d2')">Read Full Doom →</button>
+        </div>
+        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80" alt="cursor doom" class="doom-img">
+      </div>
+    </div>
+
+    <!-- CARD 3: Talent Exodus -->
+    <div class="doom-card" onclick="openModal('d3')">
+      <div class="doom-number">03</div>
+      <div class="card-inner">
+        <div>
+          <div class="doom-tag">🏃 The Great Escape</div>
+          <div class="doom-title">Every Smart Person Just Left Big Tech And Got $1 Billion Before Lunchtime</div>
+          <div class="doom-sub">The guy who built AlphaGo got $1.1B in seed funding. Yann LeCun left Meta and immediately raised $1B. $18.8B total has been thrown at ex-Big Tech founders since 2025.</div>
+          <div class="doom-excerpt">The narrative used to be "Big Tech is where the smart people go." That narrative is dead. Now the narrative is "Big Tech is where smart people build their résumé before raising half a billion dollars to compete with their former employer." David Silver, who co-created AlphaGo, closed $1.1B in SEED funding for Ineffable Intelligence. The word "seed" is doing a lot of work in that sentence.</div>
+          <button class="doom-btn" onclick="openModal('d3')">Read Full Doom →</button>
+        </div>
+        <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80" alt="exodus doom" class="doom-img">
+      </div>
+    </div>
+
+    <!-- CARD 4: Layoffs -->
+    <div class="doom-card" onclick="openModal('d4')">
+      <div class="doom-number">04</div>
+      <div class="card-inner">
+        <div>
+          <div class="doom-tag">🪦 Employment RIP</div>
+          <div class="doom-title">Meta and Microsoft Fired 20,000 People While Announcing Billions In AI Investment. Extremely Normal.</div>
+          <div class="doom-sub">The companies making the AI that's eliminating jobs are also the companies eliminating jobs because of AI. The ouroboros has logged in.</div>
+          <div class="doom-excerpt">Meta let go of 8,000 people this week. Microsoft sent out mass "voluntary buyout" offers to what analysts estimate is 12,000 more. Combined: approximately 20,000 people, laid off in the same week their employers announced record AI infrastructure spending. The official framing was "reorganizing for the AI era." Which is corporate-speak for "the AI is handling this now."</div>
+          <button class="doom-btn" onclick="openModal('d4')">Read Full Doom →</button>
+        </div>
+        <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80" alt="layoffs doom" class="doom-img">
+      </div>
+    </div>
+
+    <!-- CARD 5: Robots -->
+    <div class="doom-card" onclick="openModal('d5')">
+      <div class="doom-number">05</div>
+      <div class="card-inner card-inner">
+        <div>
+          <div class="doom-tag">🤖 Robots Getting Smarter</div>
+          <div class="doom-title">The Robots Working In BMW Factories Can Now Learn New Jobs On Their Own. Cool Cool Cool.</div>
+          <div class="doom-sub">Sereact raised $110M for robots that understand natural language and can switch tasks without reprogramming. They've done 1 billion picks. One error per 53,000. These robots are better at their jobs than most of us.</div>
+          <div class="doom-excerpt">German startup Sereact just raised $110 million for their "AI robotic brain" platform. The Cortex 2.0 model lets factory and warehouse robots understand natural language instructions and switch between tasks without any reprogramming. The robots are deployed at BMW, Daimler, and PepsiCo. They've completed over one billion production picks with a human intervention rate of 1 in 53,000.</div>
+          <button class="doom-btn" onclick="openModal('d5')">Read Full Doom →</button>
+        </div>
+        <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&q=80" alt="robots doom" class="doom-img">
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="d1" onclick="closeOnOverlay(event,'d1')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('d1')">&times;</span>
+    <div class="modal-tag">🤖 AI Singularity Adjacent</div>
+    <h2>OpenAI's New Model Wants To Be Your Entire Computer Now</h2>
+    <div class="msub">GPT-5.5, codename Spud, is actually gunning for the whole productivity stack. $30/M output tokens. No vibes, only capitalism.</div>
+    <div class="modal-meta">April 30, 2026 · The Doom Scroll</div>
+    <img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&q=80" alt="AI">
+    <p>OpenAI dropped GPT-5.5 on April 23rd, and the energy was different this time. They didn't lead with benchmarks. They didn't do the "this model is X% better on Y metric" dance. They said: <strong>"super app."</strong> One interface. Everything. ChatGPT plus Codex plus browser plus spreadsheets plus autonomous task execution, all in one place. That's not a model release. That's a platform play. That's Microsoft Office saying "we're going to eat everyone else's lunch, but make it AI."</p>
+    <p>The technical stuff is real though: GPT-5.5, codename Spud (internal humor or self-aware irony, unclear), is the first fully retrained base model since GPT-4.5. It processes text, images, audio, and video natively in a single architecture—no modality bolted on as an afterthought. One million token context window. Which means you can feed it an entire company's email archive and ask "so what's actually going on here." The price is $5/M input and $30/M output tokens, which is expensive-but-enterprise pricing. This is not for casually asking it what movies to watch. This is for replacing your legal department.</p>
+    <p>The doom framing isn't even that doomy here—it's more structurally weird. The companies that built their entire business on being the productivity layer (hello Microsoft 365, Google Workspace, Salesforce, Notion, the literal thousands of SaaS products charging $29/month for features that are now a GPT prompt away) now have to figure out what their moat is. And the honest answer for most of them is <strong>"we have existing contracts and user inertia."</strong> That's not a moat. That's a levee. And OpenAI is the rain.</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="d2" onclick="closeOnOverlay(event,'d2')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('d2')">&times;</span>
+    <div class="modal-tag">💸 VC Fantasy Land</div>
+    <h2>A Code Editor Is Worth $50B And SpaceX Wants To Buy It For $60B. Sure.</h2>
+    <div class="msub">Cursor's numbers are not real (they are). $2B ARR in 3 years. $6B projected by EOY. SpaceX acquisition option. Running out of metaphors.</div>
+    <div class="modal-meta">April 30, 2026 · The Doom Scroll</div>
+    <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80" alt="code">
+    <p>Let's just go through the numbers because they're the most unhinged part. Cursor (technically Anysphere) hit $1B ARR in November 2025. Then they hit $2B ARR in February 2026. That's <strong>doubling revenue in 90 days.</strong> Not 90 weeks. 90 days. They're now projecting $6B ARR by end of 2026, which would be a tripling within a single calendar year. In the history of enterprise software, this revenue growth pace is completely unprecedented. And it's a code editor. It helps you write code faster. That's the whole product.</p>
+    <p>Now they're raising $2B at $50B pre-money valuation, led by Thrive and a16z, with Nvidia participating. The valuation has nearly doubled since November. And here's the part where the simulation shows its seams: SpaceX—the rocket company, Elon Musk's rocket company—apparently struck a deal in April that gives them the option to acquire Cursor for $60 billion later in 2026, OR pay $10 billion for some undefined "collaborative work." Nobody has explained what a rocket company wants with an AI code editor. The theories range from "Starship software" to "Elon wants to own every important software company" to "this is just a flex." All three could be true simultaneously.</p>
+    <p>The real story underneath the absurd numbers is that <strong>developer productivity is being revalued as a scarce strategic resource.</strong> If AI tools genuinely make a developer 3-5x more productive, then the tool enabling that is worth exponentially more than anyone priced it at in 2022. The market is correcting for underpricing developer leverage. Whether $50B is the right number or whether it's 2021 crypto energy in a different asset class—genuinely unclear. The revenue growth suggests the former. The SpaceX option suggests the latter. We'll find out when the music stops.</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="d3" onclick="closeOnOverlay(event,'d3')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('d3')">&times;</span>
+    <div class="modal-tag">🏃 The Great Escape</div>
+    <h2>Every Smart Person Just Left Big Tech And Got $1B Before Lunchtime</h2>
+    <div class="msub">$18.8B in VC money chasing ex-Big Tech founders since 2025. David Silver: $1.1B seed. Yann LeCun: $1B for AMI Labs. This is a vibe shift.</div>
+    <div class="modal-meta">April 30, 2026 · The Doom Scroll</div>
+    <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80" alt="exodus">
+    <p>CNBC published a piece this week that's basically a scorecard of everyone who left Big Tech to start an AI company and immediately raised obscene amounts of money. The number: $18.8 billion committed to AI startups founded since January 2025. Most of them are founded by people who were at Meta, Google, OpenAI, or Anthropic 18 months ago. The pattern: spend years at a big lab, get credentialed, watch your research area get deprioritized because it doesn't ship product fast enough, leave, raise $500M in four weeks, compete with your old employer.</p>
+    <p>The case studies are not subtle. David Silver, who co-created AlphaGo and legitimately helped invent modern AI as we know it, left DeepMind and closed <strong>$1.1 billion in seed funding</strong> for Ineffable Intelligence. Sequoia and Lightspeed led. The company was months old. Yann LeCun—who spent decades building Meta's AI research division and is considered a founding father of deep learning—left Meta and raised $1 billion for AMI Labs in March. Humans&, founded by ex-Anthropic and ex-xAI people, closed $480M in January. These are not small checks given to people with a pitch deck. These are commitments to individuals whose names alone carry research credibility.</p>
+    <p>The uncomfortable read here is what it says about Big Tech itself. The most credible AI researchers in the world are leaving, and they're leaving because the companies are prioritizing near-term revenue over fundamental research. <strong>That's a rational short-term business decision and a potentially catastrophic long-term one.</strong> The labs that win the next generation of AI capabilities may be the ones that gave researchers enough freedom to work on things that don't immediately ship. Meta and Google are betting they can acquire or outspend whoever figures it out. The researchers are betting the opposite. Someone's going to be very right about this.</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="d4" onclick="closeOnOverlay(event,'d4')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('d4')">&times;</span>
+    <div class="modal-tag">🪦 Employment RIP</div>
+    <h2>Meta and Microsoft Fired 20,000 People While Announcing Billions In AI Investment</h2>
+    <div class="msub">The irony is structural and unavoidable. The AI that's worth $100B in infrastructure spend is also why 20,000 people don't have jobs this week.</div>
+    <div class="modal-meta">April 30, 2026 · The Doom Scroll</div>
+    <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80" alt="layoffs">
+    <p>Here's what happened this week in the corporate tech sector: Meta announced 8,000 layoffs. Microsoft issued mass voluntary buyout packages that analysts estimate will result in approximately 12,000 departures. Total: 20,000 people, in one week, from two of the most profitable technology companies on earth. The same week, both companies published earnings calls that emphasized record AI infrastructure investment. The juxtaposition wasn't even hidden. Meta literally said in its communications that it was "reorganizing for the AI era." <strong>The AI era, apparently, requires fewer humans.</strong></p>
+    <p>The jobs being cut span a range: content moderation (automation), data analytics (automation), certain software engineering roles (automation), and general operational support functions (also automation). These aren't marginal roles. These are jobs that existed for a decade, that paid well, that built careers. They're being eliminated because AI systems have crossed the threshold of "good enough to replace this." Not "better than humans in every way"—just "better than humans enough that the ROI calculation has flipped." That threshold is moving fast and will keep moving.</p>
+    <p>The discourse online tends toward two camps: "this is normal economic churn, new jobs will be created" and "this is the beginning of structural unemployment at scale." The honest answer is: both can be true simultaneously at different time horizons, and that's cold comfort to the 20,000 people whose specific jobs in this specific moment were eliminated. The "new jobs will be created" argument requires years of labor market adjustment. The "you no longer have a job" reality is immediate. <strong>The timeline mismatch between disruption and adaptation is the actual crisis</strong>, not the long-run employment picture. No one lives in the long run.</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="d5" onclick="closeOnOverlay(event,'d5')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('d5')">&times;</span>
+    <div class="modal-tag">🤖 Robots Getting Smarter</div>
+    <h2>The Robots Working In BMW Factories Can Now Learn New Jobs On Their Own</h2>
+    <div class="msub">Sereact's Cortex 2.0 raised $110M. 1B production picks. 1 error per 53,000. The robots are demonstrably more reliable than humans at this point and they're just getting started.</div>
+    <div class="modal-meta">April 30, 2026 · The Doom Scroll</div>
+    <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&q=80" alt="robots">
+    <p>German startup Sereact raised $110M in Series B funding last week for their "AI robotic brain" platform, and the story is worth paying attention to beyond the funding number. Their product, Cortex 2.0, is a foundation model for industrial robotics that lets you redirect a robot to a completely new task by telling it what to do in natural language. No reprogramming. No new code. Just: "hey robot, we need you to do this now instead." The robot understands, reasons about the physical requirements, and starts doing the new thing. That's the product. <strong>BMW uses it. PepsiCo uses it. Daimler uses it.</strong></p>
+    <p>The technical underpinning is what makes this more than a PR story. Cortex 2.0 combines a vision-language-action model with a world model—meaning the robot doesn't just understand instructions, it can simulate the physical consequences of its actions before executing them. It's the difference between a robot that follows a recipe and a robot that understands cooking. The reliability numbers are real: over one billion production picks completed, with human intervention required once every 53,000 requests. For context, human error rates in repetitive physical tasks tend to run significantly higher than that. <strong>On this specific metric, the robot is more reliable than the human it replaced.</strong></p>
+    <p>The $110M goes to expanding into the US market with a Boston office, which means the next wave of this is coming to American manufacturing floors. The pitch to US manufacturers is simple: you have a labor shortage for skilled industrial work, and the people you can hire aren't as consistent as Cortex. That pitch will land. The doom framing isn't about the robots being evil—it's about the pace of this. Ten years ago, this was speculative robotics research. Five years ago, it was early deployment. Today it's Series B with BMW as a reference customer. In five more years, it'll be standard equipment in every major warehouse and assembly line. The adjustment window for affected workers is shorter than anyone is admitting publicly.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">THE DOOM SCROLL</div>
+  <p>Thursday, April 30, 2026 · We read the news so you can process your feelings about the news.</p>
+  <p style="margin-top:6px;color:#222;">© 2026 The Doom Scroll · Fatalism-as-a-service · All content for informational purposes</p>
+</footer>
+
+<script>
+function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow=''; }
+function closeOnOverlay(e,id) { if(e.target===document.getElementById(id)) closeModal(id); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.querySelectorAll('.modal-overlay.active').forEach(m=>{m.classList.remove('active');}); document.body.style.overflow=''; } });
+</script>
+</body>
+</html>
