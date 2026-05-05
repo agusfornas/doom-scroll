@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Doom Scroll — We're All Doomed But At Least It's Interesting</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --black: #080808; --red: #ff2020; --orange: #ff9900; --white: #f5f5f5; --gray: #666; --card: #0f0f0f; --border: #1a1a1a; }
+  body { background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.6; }
+  a { color: inherit; text-decoration: none; }
+
+  /* Header */
+  header { padding: 28px 5% 20px; border-bottom: 2px solid var(--red); text-align: center; position: relative; }
+  .header-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--orange); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; }
+  .header-eyebrow .blink { animation: blink 1.2s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 4.5rem; letter-spacing: 0.04em; line-height: 1; color: var(--white); }
+  .logo span { color: var(--red); }
+  .logo-sub { font-size: 13px; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 6px; font-weight: 300; }
+  .header-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gray); margin-top: 10px; }
+
+  /* Red bar */
+  .red-bar { background: var(--red); padding: 8px 5%; display: flex; gap: 20px; align-items: center; }
+  .red-bar-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; }
+  .red-bar-text { font-size: 12px; opacity: 0.9; }
+
+  /* Main */
+  main { max-width: 1100px; margin: 0 auto; padding: 36px 5% 60px; display: flex; flex-direction: column; gap: 28px; }
+
+  /* Cards */
+  .doom-card { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--red); padding: 28px 32px; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; }
+  .doom-card:hover { background: #121212; border-left-color: var(--orange); }
+  .doom-card:hover .doom-title { color: var(--orange); }
+  .doom-number { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; color: var(--border); position: absolute; top: 16px; right: 24px; line-height: 1; user-select: none; }
+  .doom-tag { display: inline-block; border: 1px solid var(--red); color: var(--red); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; margin-bottom: 14px; }
+  .doom-tag.orange { border-color: var(--orange); color: var(--orange); }
+  .doom-title { font-size: 1.4rem; font-weight: 700; line-height: 1.25; margin-bottom: 12px; transition: color 0.2s; max-width: 80%; }
+  .doom-excerpt { font-size: 0.88rem; color: #999; line-height: 1.65; max-width: 75%; margin-bottom: 20px; }
+  .read-btn { display: inline-block; background: var(--red); color: var(--white); font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 18px; transition: background 0.2s; }
+  .read-btn:hover { background: var(--orange); }
+  .doom-card:nth-child(even) { border-left-color: var(--orange); }
+  .doom-card:nth-child(even) .doom-tag { border-color: var(--orange); color: var(--orange); }
+  .doom-card:nth-child(even) .read-btn { background: var(--orange); color: var(--black); }
+
+  /* Footer */
+  footer { border-top: 2px solid var(--red); padding: 28px 5%; text-align: center; }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--red); margin-bottom: 8px; }
+  .footer-text { font-size: 12px; color: var(--gray); }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--red); max-width: 720px; width: 100%; padding: 48px 44px 36px; position: relative; }
+  .modal-close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 1.6rem; cursor: pointer; color: var(--gray); font-family: 'DM Sans', sans-serif; }
+  .modal-close:hover { color: var(--red); }
+  .modal-doom-tag { display: inline-block; border: 1px solid var(--red); color: var(--red); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; margin-bottom: 14px; }
+  .modal-title { font-size: 1.65rem; font-weight: 700; line-height: 1.25; margin-bottom: 12px; }
+  .modal-deck { font-size: 0.92rem; color: #999; margin-bottom: 20px; }
+  .modal-line { border: none; border-top: 1px solid var(--red); margin: 20px 0; }
+  .modal-body p { margin-bottom: 18px; line-height: 1.75; font-size: 0.91rem; color: #ccc; }
+
+  @media (max-width: 768px) {
+    .logo { font-size: 3rem; }
+    .doom-title { max-width: 100%; font-size: 1.15rem; }
+    .doom-excerpt { max-width: 100%; }
+    .doom-number { display: none; }
+    .modal { padding: 36px 20px 24px; }
+    .modal-title { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-eyebrow"><span class="blink">⚠</span> LIVE DOOM FEED <span class="blink">⚠</span></div>
+  <div class="logo">The <span>Doom</span> Scroll</div>
+  <div class="logo-sub">We're all doomed but at least it's interesting</div>
+  <div class="header-date">// Tuesday, May 5, 2026 · 5 headlines · 0 solutions</div>
+</header>
+
+<div class="red-bar">
+  <div class="red-bar-label">TODAY'S VIBE:</div>
+  <div class="red-bar-text">Military AI contracts signed ✓ · Cyberattacks powered by AI ✓ · Humans still beating robots (barely) ✓ · $800M moved into "infrastructure" (vibes) ✓</div>
+</div>
+
+<main>
+  <div class="doom-card" onclick="openModal('m1')">
+    <div class="doom-number">01</div>
+    <span class="doom-tag">MILITARY AI</span>
+    <h2 class="doom-title">The Pentagon Just Signed AI Military Contracts With Eight Companies — Anthropic Got Kicked Out for Asking "What If We Don't Use AI to Kill People Without Guardrails"</h2>
+    <p class="doom-excerpt">OpenAI, Google, Microsoft, Amazon, SpaceX, Oracle, Nvidia and Reflection are now in classified military networks. Anthropic asked for safety conditions. They said no. Classic. Now they're negotiating again. Also classic.</p>
+    <button class="read-btn" onclick="openModal('m1');event.stopPropagation()">Read Full Doom</button>
+  </div>
+
+  <div class="doom-card" onclick="openModal('m2')">
+    <div class="doom-number">02</div>
+    <span class="doom-tag orange">OPENAI DRAMA</span>
+    <h2 class="doom-title">OpenAI Dropped GPT-5.5 and Casually Betrayed Microsoft After They Invested $13 Billion, Which Is Very Normal Behavior</h2>
+    <p class="doom-excerpt">New model is good actually. Also: OpenAI is now distributing through Amazon and chatting with Google. Microsoft put in $13B and is learning what "exclusive partnership" means to Sam Altman.</p>
+    <button class="read-btn" onclick="openModal('m2');event.stopPropagation()">Read Full Doom</button>
+  </div>
+
+  <div class="doom-card" onclick="openModal('m3')">
+    <div class="doom-number">03</div>
+    <span class="doom-tag">CYBER DOOM</span>
+    <h2 class="doom-title">2026 Is Officially "The Year of AI-Assisted Cyberattacks" and One Person Used Claude Code to Extort 17 Companies Simultaneously Which Is Extremely Normal and Fine</h2>
+    <p class="doom-excerpt">28.3% of vulnerabilities now exploited within 24 hours of disclosure. One solo actor running an extortion campaign against 17 orgs at once. Mandiant says we're cooked. Not their words but basically.</p>
+    <button class="read-btn" onclick="openModal('m3');event.stopPropagation()">Read Full Doom</button>
+  </div>
+
+  <div class="doom-card" onclick="openModal('m4')">
+    <div class="doom-number">04</div>
+    <span class="doom-tag orange">SCIENCE CHECK</span>
+    <h2 class="doom-title">Good News: Human PhD Scientists Still Beat the Best AI Agents 2-to-1 on Complex Tasks. Bad News: The AI Hype Cycle Does Not Care About This Study At All</h2>
+    <p class="doom-excerpt">Stanford published in Nature: top AI agents perform at 50% of PhD scientist level on complex scientific work. Important nuance: researchers are using AI anyway and maybe that's changing what science gets done.</p>
+    <button class="read-btn" onclick="openModal('m4');event.stopPropagation()">Read Full Doom</button>
+  </div>
+
+  <div class="doom-card" onclick="openModal('m5')">
+    <div class="doom-number">05</div>
+    <span class="doom-tag">MONEY STUFF</span>
+    <h2 class="doom-title">VCs Poured $800M Into "AI Infrastructure" This Week, Which Is Investor Speak for "We Don't Trust Consumer AI Anymore But We Do Trust the Pipes"</h2>
+    <p class="doom-excerpt">ShengShu $293M, Rogo $160M, Hightouch $150M, Avoca $125M, Parallel Web $100M. Capital is flowing to the boring-but-load-bearing parts of the AI stack. Which is actually kind of based.</p>
+    <button class="read-btn" onclick="openModal('m5');event.stopPropagation()">Read Full Doom</button>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo">The Doom Scroll</div>
+  <div class="footer-text">Daily tech news for people who can handle the truth · May 5, 2026 · No coping mechanisms provided</div>
+</footer>
+
+<!-- Modals -->
+<div class="modal-overlay" id="m1" onclick="if(event.target===this)closeModal('m1')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('m1')">&times;</button>
+    <span class="modal-doom-tag">MILITARY AI</span>
+    <h2 class="modal-title">The Pentagon's AI Military Contracts and the Anthropic Exclusion Nobody Should Be Surprised By</h2>
+    <p class="modal-deck">The DoD signs with 8 tech giants for classified military AI. Anthropic asked for safety conditions and got kicked out. Now they're negotiating again. This is fine.</p>
+    <hr class="modal-line">
+    <div class="modal-body">
+      <p>So the Pentagon just formalised AI agreements with OpenAI, Google, Microsoft, Amazon, Oracle, SpaceX, Nvidia, and a company called Reflection that you might not have heard of but is apparently trusted with classified military networks. These systems will be used for intelligence analysis, logistics, operational planning and — the part where you put your phone down for a second — "lethal decision-support." Which is a very clean way of saying "AI helps decide who gets bombed."</p>
+      <p>Anthropic was excluded. Why? Because they asked that the contract include specific safety guardrails for the military use of their models. Specifically around AI use in warfare. The administration said no. Anthropic got dropped. This is either (a) the most depressing indicator of where AI ethics stands in 2026, (b) a calculated business negotiating move that will result in Anthropic eventually getting included after mild concessions, or (c) both, simultaneously, which is the correct answer. As of today they are apparently negotiating again after Anthropic announced "technical breakthroughs," which is a polite way of saying they found terms they can live with.</p>
+      <p>The doom here isn't really about Anthropic specifically — they'll be fine, probably. The structural problem is the incentive system this creates. If requesting safety conditions means you lose the contract, then from a pure game theory standpoint, the rational move for every AI lab is to request fewer safety conditions. That's exactly the race dynamic that AI safety researchers have been trying to prevent for years, and it just got institutionalised by a federal procurement process. We are so incredibly normal and not doomed at all.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m2" onclick="if(event.target===this)closeModal('m2')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('m2')">&times;</button>
+    <span class="modal-doom-tag">OPENAI DRAMA</span>
+    <h2 class="modal-title">GPT-5.5 Is Actually Good and Also OpenAI Is Treating Microsoft Like a Situationship They're Over</h2>
+    <p class="modal-deck">Better model, agentic improvements, and a quiet dissolution of the Azure exclusivity arrangement. Microsoft discovers what $13B buys you.</p>
+    <hr class="modal-line">
+    <div class="modal-body">
+      <p>GPT-5.5 dropped and it's legitimately better. Independent benchmarks confirm real improvements in agentic tasks — multi-step tool use, extended research chains, autonomous code execution. This matters because agentic AI is where the actual productivity gains are happening, not just chatting. The jump from GPT-5 isn't as dramatic as previous versions but the reliability improvements in long inference chains are real and if you're building on top of this stuff it matters. Cool. Good model. Five stars.</p>
+      <p>Now for the lore: OpenAI announced they're relaxing the exclusivity provisions with Microsoft. Translation: they're now distributing through AWS and are apparently deep in talks with Google Cloud. Microsoft has been the primary compute partner and had what everyone assumed was a durable competitive advantage — "we invested thirteen billion dollars in them, our models are the best, they only run on Azure." Turns out "only" is negotiable. The Microsoft employees who worked on the OpenAI partnership are having a very interesting Tuesday.</p>
+      <p>The strategic play makes sense from OpenAI's perspective. You don't want a single point of infrastructure dependency when you're building what is increasingly looking like foundational global infrastructure. From a "not getting caught in a hostage situation if Azure has an outage" standpoint, this is reasonable. From a "we agreed to terms and now we're changing them after taking the money" standpoint, this is extremely Silicon Valley. The precedent it sets — that AI partnerships at this scale are fluid and renegotiable based on market position — will matter for every enterprise AI deal that comes after it.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m3" onclick="if(event.target===this)closeModal('m3')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('m3')">&times;</button>
+    <span class="modal-doom-tag">CYBER DOOM</span>
+    <h2 class="modal-title">2026: The Year AI Made Hacking Way Too Easy and Someone Already Used It to Extort 17 Companies at Once</h2>
+    <p class="modal-deck">Mandiant's M-Trends 2026 report confirms what everyone feared: the exploit gap has collapsed and one person can now run industrial-scale extortion campaigns solo.</p>
+    <hr class="modal-line">
+    <div class="modal-body">
+      <p>Mandiant released the M-Trends 2026 report this week and it reads like the document version of that feeling when you realize you left your door unlocked but also someone removed the door. Key stat: 28.3% of CVEs — disclosed vulnerabilities — are now being exploited within 24 hours of public disclosure. That number was basically science fiction three years ago. Today it's the baseline expectation. The mechanism is AI: what used to require a team of specialists to turn a theoretical vulnerability into a working exploit now requires significantly less expertise and significantly less time when you have the right AI tools.</p>
+      <p>The case study that's going to be in every security conference talk for the next two years: a single threat actor used Claude Code — Anthropic's AI coding tool — to run a simultaneous extortion campaign targeting 17 organizations. Let that compute for a second. Not a nation-state actor. Not a sophisticated criminal organization. One person, one AI tool, 17 targets at once. The operational tempo and parallelization that requires would previously have needed a coordinated group. AI collapsed that requirement to an individual with the right setup. This is the cyber equivalent of what happened to photography when smartphones appeared — the barrier dropped and volume exploded.</p>
+      <p>What do you do with this information? Honestly, if you're a CISO reading this, your patch cycles need to be faster than humanly manageable without automation, which is ironic because automation is also what's being used against you. The asymmetry has flipped: offense scales better than defense when both sides use AI, because there are vastly more potential attack surfaces than there are defenders. The realistic answer isn't "patch everything faster" — it's "assume breach, design for containment and recovery, not just prevention." Which is what security people have been saying for years, but it's more urgently true than ever.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m4" onclick="if(event.target===this)closeModal('m4')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('m4')">&times;</button>
+    <span class="modal-doom-tag">SCIENCE CHECK</span>
+    <h2 class="modal-title">AI Agents Are Half as Good as PhD Scientists and This Won't Stop the Hype Cycle at All</h2>
+    <p class="modal-deck">Stanford HAI publishes in Nature: best AI agents perform at 50% of PhD scientist level on complex scientific tasks. Researchers are using AI anyway. The implications are complicated.</p>
+    <hr class="modal-line">
+    <div class="modal-body">
+      <p>Stanford's AI Index Report 2026, freshly published in Nature (not a blog post, an actual prestigious scientific journal), drops a number that should be front page news in a world that wasn't drowning in AI hype: the best AI agents currently available perform at approximately 50% of the success rate of human PhD scientists on complex scientific tasks. Not 90%. Not 95%. Fifty. Half. This is after years of claims that AI was going to "revolutionize science" and "discover new drugs autonomously" and "accelerate research by 10x." The actual number, measured rigorously, is that you need two AI agents to do what one decent scientist does. Cool. Great. We're all learning.</p>
+      <p>Here's the nuance that stops this from being a simple "AI is bad and overrated" take: the report also notes that researchers have broadly adopted AI tools anyway, and the marginal value is real even if the absolute performance isn't at replacement level. A tool that performs at 50% of a human level on some tasks but handles unlimited parallelization at zero marginal cost can still be net positive for a research program. The problem is when that adoption subtly changes which research gets done — optimizing for problems where AI can help rather than problems worth solving. That's the quietly important concern buried in the report that nobody is going to put in a press release.</p>
+      <p>The Gen Z read on this: AI as a research tool is basically that group project member who does half the work but shows up for all the credit. You still need the smart people doing the real work. The AI handles the tasks that are annoying to do at scale — literature synthesis, data cleaning, the stuff nobody wants to spend PhD brain cycles on. But "AI is revolutionizing science" is a 2024 claim that a rigorous 2026 measurement just put a 50% label on. That label deserves to travel further than it will, because it competes with an industry that spends millions marketing the opposite narrative.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m5" onclick="if(event.target===this)closeModal('m5')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('m5')">&times;</button>
+    <span class="modal-doom-tag">MONEY STUFF</span>
+    <h2 class="modal-title">$800M Into AI Infrastructure: VCs Finally Figured Out the Boring Parts Are the Real Parts</h2>
+    <p class="modal-deck">ShengShu $293M. Rogo $160M. Hightouch $150M. Avoca $125M. Parallel Web $100M. The pipes and wires are the business now.</p>
+    <hr class="modal-line">
+    <div class="modal-body">
+      <p>Here's this week's VC energy translated from finance-bro into English: everyone who put money into consumer-facing AI apps that were basically ChatGPT wrappers is having a rough time, and everyone who put money into the infrastructure that makes AI actually run at scale is looking pretty smart right now. The evidence: $800M+ deployed in one week to companies that are building the pipes, not the products that flow through them. ShengShu Technology ($293M) is doing world-model multimodal AI. Rogo ($160M) is doing AI-driven financial workflows. Hightouch ($150M) is doing customer data infrastructure. Avoca ($125M) is AI customer support. Parallel Web ($100M) is AI search and research APIs. The vibe is: boring, load-bearing, and theoretically defensible when models get commoditized.</p>
+      <p>The theory of the case is that application-layer AI is going to get squeezed from both directions: better base models make it easier to build products (more competition) and also make existing products less differentiated (commoditization). But the infrastructure layer — the stuff that makes AI actually run reliably, cheaply, and at enterprise scale — retains value because it's harder to replicate and switching costs are high. This is the "picks and shovels" thesis that people have been applying to AI since 2023, except now there's actual evidence it's working out better than betting on specific applications.</p>
+      <p>The hardware doom addendum: Tsavorite raised seed funding for an "Omni Processing Unit" that allegedly reduces AI inference energy consumption by 90%. If real, this matters enormously because power cost is one of the actually binding constraints on AI deployment at scale right now. The infrastructure thesis only holds if someone solves the energy problem — otherwise "AI infrastructure" just means "paying enormous electricity bills forever." A 90% reduction in inference energy would be genuinely transformative. We should probably not assume it's real until it ships in production. But if it does, it's one of the more consequential hardware developments of the decade. Noted for later.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { document.querySelectorAll('.modal-overlay.active').forEach(m => { m.classList.remove('active'); document.body.style.overflow = ''; }); } });
+</script>
+</body>
+</html>
